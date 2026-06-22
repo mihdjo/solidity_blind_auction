@@ -27,6 +27,8 @@ contract BlindAuction {
         uint highestBid
     );
 
+    error TooLate(uint time);
+
     constructor(
         uint biddingTime,
         uint revealTime,
@@ -36,5 +38,34 @@ contract BlindAuction {
 
         biddingEnd = block.timestamp + biddingTime;
         revealEnd = biddingEnd + revealTime;
+    }
+
+    modifier onlyBefore(uint time) {
+        if (block.timestamp >= time)
+            revert TooLate(time);
+        _;
+    }
+
+    error TooEarly(uint time);
+
+    modifier onlyAfter(uint time) {
+        if (block.timestamp <= time)
+            revert TooEarly(time);
+        _;
+    }   
+
+    function bid(
+        bytes32 blindedBid
+    )
+        external
+        payable
+        onlyBefore(biddingEnd)
+    {
+        bids[msg.sender].push(
+            Bid({
+                blindedBid: blindedBid,
+                deposit: msg.value
+            })
+        );
     }
 }
