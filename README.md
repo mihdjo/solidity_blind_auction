@@ -1,3 +1,5 @@
-# solidity-blind-auction
-Blind auction smart contract in Solidity implementing the commit-reveal bidding pattern.
-Project was done under the course "Concurrent and distributed programming" at Faculty of Organizational Sciences.
+# Smart Contract Development – Solidity Blind Auction
+
+Blind Auction smart contract written in Solidity, implementing the commit-reveal bidding pattern.
+
+This project was developed as part of the "Concurrent and Distributed Programming" course at the Faculty of Organizational Sciences.
