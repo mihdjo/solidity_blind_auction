@@ -4,7 +4,8 @@
   "description": "Blind Auction smart contract written in Solidity, implementing the commit-reveal bidding pattern.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "compile": "hardhat compile",
+    "test": "hardhat test"
   },
   "repository": {
     "type": "git",
