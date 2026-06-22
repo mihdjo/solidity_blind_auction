@@ -2,7 +2,6 @@
 pragma solidity ^0.8.28;
 
 contract BlindAuction {
-
     struct Bid {
         bytes32 blindedBid;
         uint deposit;
@@ -19,15 +18,14 @@ contract BlindAuction {
     uint public highestBid;
 
     mapping(address => uint) public pendingReturns;
-
     mapping(address => Bid[]) public bids;
 
-    event AuctionEnded(
-        address winner,
-        uint highestBid
-    );
+    event AuctionEnded(address winner, uint highestBid);
 
+    error TooEarly(uint time);
     error TooLate(uint time);
+    error InvalidReveal();
+    error AuctionEndAlreadyCalled();
 
     constructor(
         uint biddingTime,
@@ -35,28 +33,25 @@ contract BlindAuction {
         address payable beneficiaryAddress
     ) {
         beneficiary = beneficiaryAddress;
-
         biddingEnd = block.timestamp + biddingTime;
         revealEnd = biddingEnd + revealTime;
     }
 
     modifier onlyBefore(uint time) {
-        if (block.timestamp >= time)
+        if (block.timestamp >= time) {
             revert TooLate(time);
+        }
         _;
     }
 
-    error TooEarly(uint time);
-
     modifier onlyAfter(uint time) {
-        if (block.timestamp <= time)
+        if (block.timestamp <= time) {
             revert TooEarly(time);
+        }
         _;
-    }   
+    }
 
-    function bid(
-        bytes32 blindedBid
-    )
+    function bid(bytes32 blindedBid)
         external
         payable
         onlyBefore(biddingEnd)
@@ -69,19 +64,28 @@ contract BlindAuction {
         );
     }
 
-    error InvalidReveal();
-
     function reveal(
         uint[] calldata values,
         bool[] calldata fakes,
         bytes32[] calldata secrets
     )
         external
+        onlyAfter(biddingEnd)
+        onlyBefore(revealEnd)
     {
         uint length = bids[msg.sender].length;
-        if (values.length != length) revert InvalidReveal();
-        if (fakes.length != length) revert InvalidReveal();
-        if (secrets.length != length) revert InvalidReveal();
+
+        if (values.length != length) {
+            revert InvalidReveal();
+        }
+
+        if (fakes.length != length) {
+            revert InvalidReveal();
+        }
+
+        if (secrets.length != length) {
+            revert InvalidReveal();
+        }
 
         uint refund;
 
@@ -96,7 +100,6 @@ contract BlindAuction {
             );
 
             if (bidToCheck.blindedBid != computedHash) {
-                // invalid bid → ignorisati
                 continue;
             }
 
@@ -114,21 +117,28 @@ contract BlindAuction {
         payable(msg.sender).transfer(refund);
     }
 
-    function placeBid(address bidder, uint value) internal returns (bool) {
-    if (value <= highestBid) {
-        return false;
+    function placeBid(address bidder, uint value)
+        internal
+        returns (bool)
+    {
+        if (value <= highestBid) {
+            return false;
+        }
+
+        if (highestBidder != address(0)) {
+            pendingReturns[highestBidder] += highestBid;
+        }
+
+        highestBid = value;
+        highestBidder = bidder;
+
+        return true;
     }
 
-    if (highestBidder != address(0)) {
-        pendingReturns[highestBidder] += highestBid;
-    }
-
-    highestBid = value;
-    highestBidder = bidder;
-    return true;
-    }
-
-    function withdraw() external returns (bool) {
+    function withdraw()
+        external
+        returns (bool)
+    {
         uint amount = pendingReturns[msg.sender];
 
         if (amount > 0) {
@@ -143,8 +153,13 @@ contract BlindAuction {
         return true;
     }
 
-    function auctionEnd() external onlyAfter(revealEnd) {
-        if (ended) return;
+    function auctionEnd()
+        external
+        onlyAfter(revealEnd)
+    {
+        if (ended) {
+            revert AuctionEndAlreadyCalled();
+        }
 
         ended = true;
 
