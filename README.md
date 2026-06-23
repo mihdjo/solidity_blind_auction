@@ -56,7 +56,7 @@ The contract itself includes:
  * `auctionEnd()` - finalizes the auction and transfers funds to the beneficiary
  * `placeBid()` - internal helper function for updating the highest bid
 
-## Tests
+## Testing 
 
 The test suite is located in:
 
@@ -76,24 +76,9 @@ The tests covered are:
  * rejecting early finalization
  * rejecting repeated finalization
 
-## Quick setup
+## Testing result
 
-Install dependencies:
-
-`npm install`
-
-Compile the smart contract using Hardhat:
-
-`npx hardhat compile`
-
-Run the complete testing part:
-
-`npx hardhat test`
-
-Previously mentioned commands have a shortcut written in package.json:
-
-`npm run compile` and
-`npm test`
+![Passing tests](docs/passing-tests.png)
 
 ## Commit-Reveal example
 
@@ -140,6 +125,25 @@ If the bid is not winning, the refundable amount can later be withdrawn.
 The contract uses a pull-payment pattern. Instead of automatically sending Ether back to users in every case, refundable balances are stored in `pendingReturns`.
 
 Users can then call `withdraw()` to retrieve their refundable amount. This is a safer design pattern for handling Ether transfers in smart contracts.
+
+## Quick setup
+
+Install dependencies:
+
+`npm install`
+
+Compile the smart contract using Hardhat:
+
+`npx hardhat compile`
+
+Run the complete testing part:
+
+`npx hardhat test`
+
+Previously mentioned commands have a shortcut written in package.json:
+
+`npm run compile` and
+`npm test`
 
 ## Technologies used
  * Solidity
